@@ -1,0 +1,15 @@
+{
+  "name": "twitter-feeds",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Tobias Kloht <mail@kloht.com>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "dotenv": "^8.2.0",
+    "jsdom": "^16.2.2",
+    "ramda": "^0.27.0",
+    "twitter-lite": "^0.14.0"
+  },
+  "type": "module"
+}
