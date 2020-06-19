@@ -11,30 +11,39 @@ const instance = axios.create({
 
 
 const { JSDOM } = jsdom
-const file = fs.readFileSync('result.json', 'utf8')
+const file = fs.readFileSync('twitter-friends.cache.json', 'utf8')
 const users = JSON.parse(file)
 
 
-async function run() {
-  console.log('>>> read users count: ', users.length)
-  for (let x of users) {
-    try {
-      const result = await instance.get(x.url)
-      console.log(`>>>> got html for ${x.name}: `, result.request.res.responseUrl)
-      const dom = new JSDOM(result.data);
-      const links = Array.from(dom.window.document.querySelectorAll("link[rel=alternate]"))
-        .filter(x =>
-          x.type === "application/rss+xml" 
-          || x.type === "application/atom+xml" 
-          || x.type === "application/json"
-        )
-        .map(x => x.href)
-
-      console.log('>>> ', links);
-    } catch (error) {
-      console.error(`>>>> error for ${x.name}: `, error)
-    }
+async function handleItem(user) {
+  try {
+    const homepageRequest = await instance.get(user.url)
+    const responseUrl = homepageRequest.request.res.responseUrl
+    console.log(`>>>> got html for ${user.name}: `, responseUrl)
+    const dom = new JSDOM(homepageRequest.data);
+    const feedLinks = Array.from(dom.window.document.querySelectorAll("link[rel=alternate]"))
+      .filter(link =>
+        link.type === "application/rss+xml" 
+        || link.type === "application/atom+xml" 
+        || link.type === "application/json"
+      )
+      .map(link => link.href)
+     const result = {...user, shortUrl: user.url, url: responseUrl, feedLinks}
+     return result
+     
+  } catch (error) {
+    console.error(`>>>> error for ${user.name}: `, error)
+    return user
   }
+}
+
+async function run() {
+
+  const results = await Promise.all(users.map(handleItem))
+
+  console.log("results: ", results)
+
+  fs.writeFileSync("resolved-data.cache.json", JSON.stringify(results))
 }
 
 run()

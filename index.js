@@ -26,8 +26,8 @@ async function run() {
   console.log('>>> results: ', users)  
   console.log('>>> headers: ', headers)
 
-  fs.writeFileSync('result.json', JSON.stringify(users))
-  console.log('written to result.json')
+  fs.writeFileSync('twitter-friends.cache.json', JSON.stringify(users))
+  console.log('written to twitter-friends.cache.json')
 
 
 }
