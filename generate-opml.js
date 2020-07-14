@@ -10,26 +10,30 @@ const header = {
   "ownerName": "Tobias Kloht"
 }
 
-// console.log('>>> data: ', data)
+function getFeedUrl(htmlUrl, xmlUrl) {
+  if (xmlUrl.trim().substring(0,1) === "/") {
+    return htmlUrl
+      .trim()
+      .replace(/\/$/, "")
+      .concat(xmlUrl.trim())
+  }
+  return xmlUrl
+}
 
 const outlines = r.pipe(
-
   JSON.parse,
-
   r.filter(x => x.feedLinks&& x.feedLinks.length > 0),
   r.map(x => x.feedLinks.map(feedLink => {
     return({
        text: `${x.name} (@${x.screen_name})`,
        title: x.description,
        type: "rss",
-       "xmlUrl": feedLink,
+       "xmlUrl": getFeedUrl(x.url, feedLink),
        "htmlUrl": x.url
     })
   })),
   r.flatten
 )(data)
-
-// console.log('>>> OUTLINES: ', outlines)
 
 const result = opml(header, outlines);// => XML
 
