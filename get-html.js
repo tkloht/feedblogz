@@ -2,15 +2,8 @@ import axios from 'axios'
 import fs from 'fs'
 import jsdom from 'jsdom'
 import https from 'https'
-
-const instance = axios.create({
-  httpsAgent: new https.Agent({  
-    rejectUnauthorized: false
-  })
-});
-
-instance.defaults.timeout = 1000
-
+import PProgress from 'p-progress'
+import got from 'got'
 
 const { JSDOM } = jsdom
 const file = fs.readFileSync('twitter-friends.cache.json', 'utf8')
@@ -19,10 +12,10 @@ const users = JSON.parse(file)
 
 async function handleItem(user) {
   try {
-    const homepageRequest = await instance.get(user.url)
-    const responseUrl = homepageRequest.request.res.responseUrl
+    const homepageRequest = await got(user.url, {timeout: 5000})
+    const responseUrl = homepageRequest.url
     console.log(`>>>> got html for ${user.name}: `, responseUrl)
-    const dom = new JSDOM(homepageRequest.data);
+    const dom = new JSDOM(homepageRequest.body);
     const feedLinks = Array.from(dom.window.document.querySelectorAll("link[rel=alternate]"))
       .filter(link =>
         link.type === "application/rss+xml" 
@@ -40,8 +33,11 @@ async function handleItem(user) {
 }
 
 async function run() {
+  const allFeedsPromise = PProgress.all(users.map(handleItem))
+  allFeedsPromise.onProgress(console.log)
+  const results = await allFeedsPromise
 
-  const results = await Promise.all(users.map(handleItem))
+
 
   console.log("results: ", results)
 

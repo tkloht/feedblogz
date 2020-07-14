@@ -15,16 +15,34 @@ const client = new Twitter({
 })
 
 async function run() {
-  const result =  await client.get("friends/list", {count: 200})
+  const firstPage =  await client.get("friends/list", {count: 200})
 
-  const users = r.pipe(
+  let cursor = firstPage.next_cursor
+
+  const getUserData = r.pipe(
     r.filter(x => x.url !== null),
     r.map(r.pick(["name", "screen_name", "description", "url"]))
-  )( result.users)
-  const headers = result._headers
+  )
 
-  console.log('>>> results: ', users)  
+  let users = getUserData( firstPage.users)
+  let headers = firstPage._headers
+
+  // console.log('>>> results: ', users)  
   console.log('>>> headers: ', headers)
+  console.log('>>> users length: ', firstPage.users.length)
+
+  while (cursor > 0) {
+    console.log(">>>> cursor: ", cursor)
+    const currentPage = await client.get("friends/list", {count: 200, cursor})
+    const pageUsers = getUserData(currentPage.users)
+    users = users.concat(pageUsers)
+    cursor = currentPage.next_cursor
+    headers = currentPage._headers
+    console.log('>>> users length: ', currentPage.users.length)
+  }
+
+  console.log(">>>> got all pages, now cursor: ", cursor)
+  console.log('>>> headers for last page: ', headers)
 
   fs.writeFileSync('twitter-friends.cache.json', JSON.stringify(users))
   console.log('written to twitter-friends.cache.json')
