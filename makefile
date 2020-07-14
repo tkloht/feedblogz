@@ -1,4 +1,4 @@
-all: read transform
+all: read transform opml
 
 read:
 	node index.js
@@ -6,4 +6,5 @@ read:
 transform:
 	node get-html.js
 	
-
+opml:
+	node generate-opml.js
