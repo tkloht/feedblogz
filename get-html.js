@@ -9,6 +9,8 @@ const instance = axios.create({
   })
 });
 
+instance.defaults.timeout = 1000
+
 
 const { JSDOM } = jsdom
 const file = fs.readFileSync('twitter-friends.cache.json', 'utf8')
@@ -27,12 +29,12 @@ async function handleItem(user) {
         || link.type === "application/atom+xml" 
         || link.type === "application/json"
       )
-      .map(link => link.href)
+      .map(link => ({ href: link.href, title: link.title }))
      const result = {...user, shortUrl: user.url, url: responseUrl, feedLinks}
      return result
      
   } catch (error) {
-    console.error(`>>>> error for ${user.name}: `, error)
+    console.error(`>>>> error for ${user.name} (${user.url}) `)
     return user
   }
 }

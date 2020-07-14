@@ -26,9 +26,9 @@ const outlines = r.pipe(
   r.map(x => x.feedLinks.map(feedLink => {
     return({
        text: `${x.name} (@${x.screen_name})`,
-       title: x.description,
+       title: feedLink.title || x.description,
        type: "rss",
-       "xmlUrl": getFeedUrl(x.url, feedLink),
+       "xmlUrl": getFeedUrl(x.url, feedLink.href),
        "htmlUrl": x.url
     })
   })),
